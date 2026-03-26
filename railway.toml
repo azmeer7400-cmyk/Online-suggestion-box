@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacks]
+pkgs = ["nodejs_18"]
+buildCommands = ["npm install"]
+
+[start]
+cmd = "node server.js"

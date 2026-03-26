@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Online Suggestion Box</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Admin Dashboard</h2>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active" data-section="dashboard">
+          Dashboard
+        </a>
+        <a href="#all-suggestions" class="nav-item" data-section="all-suggestions">
+          All Suggestions
+        </a>
+        <a href="#pending" class="nav-item" data-section="pending">
+          Pending
+        </a>
+        <a href="#under-review" class="nav-item" data-section="under-review">
+          Under Review
+        </a>
+        <a href="#resolved" class="nav-item" data-section="resolved">
+          Resolved
+        </a>
+        <a href="#rejected" class="nav-item" data-section="rejected">
+          Rejected
+        </a>
+        <a href="#filter" class="nav-item" data-section="filter">
+          Filter by Area
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="btn btn-secondary btn-block">Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <!-- Header -->
+      <header class="dashboard-header">
+        <div class="header-left">
+          <h1>Welcome, Admin</h1>
+          <p id="currentTime"></p>
+        </div>
+        <div class="header-right">
+          <span id="adminUsername" class="admin-name"></span>
+        </div>
+      </header>
+
+      <!-- Dashboard Section -->
+      <section id="dashboard-section" class="dashboard-section active">
+        <h2>Dashboard Overview</h2>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-content">
+              <p class="stat-label">Total Suggestions</p>
+              <p class="stat-value" id="statTotal">0</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <p class="stat-label">Pending</p>
+              <p class="stat-value" id="statPending">0</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <p class="stat-label">Under Review</p>
+              <p class="stat-value" id="statUnderReview">0</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <p class="stat-label">Resolved</p>
+              <p class="stat-value" id="statResolved">0</p>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <p class="stat-label">Rejected</p>
+              <p class="stat-value" id="statRejected">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="recent-suggestions">
+          <h3>Recent Suggestions</h3>
+          <div id="recentSuggestionsList" class="suggestions-list"></div>
+        </div>
+      </section>
+
+      <!-- Suggestions Display Section -->
+      <section id="suggestions-section" class="dashboard-section">
+        <div class="section-header">
+          <h2 id="sectionTitle">All Suggestions</h2>
+          <div class="filter-controls">
+            <input 
+              type="text" 
+              id="searchInput" 
+              placeholder="Search by title or area..."
+              class="search-input"
+            >
+            <select id="statusFilter" class="filter-select">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Resolved">Resolved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="suggestionsList" class="suggestions-list"></div>
+      </section>
+
+      <!-- Filter by Area Section -->
+      <section id="filter-section" class="dashboard-section">
+        <h2>Filter by Area</h2>
+        
+        <div class="area-buttons">
+          <button class="area-btn" data-area="Library">Library</button>
+          <button class="area-btn" data-area="Cafeteria">Cafeteria</button>
+          <button class="area-btn" data-area="Classroom">Classroom</button>
+          <button class="area-btn" data-area="Laboratory">Laboratory</button>
+          <button class="area-btn" data-area="Other">Other</button>
+        </div>
+
+        <div id="areaFilterResults" class="suggestions-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal for Editing Suggestion -->
+  <div id="suggestionModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <h2>Review Suggestion</h2>
+      
+      <div class="suggestion-detail">
+        <div class="detail-row">
+          <label>Title:</label>
+          <p id="modalTitle"></p>
+        </div>
+        <div class="detail-row">
+          <label>Message:</label>
+          <p id="modalMessage"></p>
+        </div>
+        <div class="detail-row">
+          <label>Area:</label>
+          <p id="modalArea"></p>
+        </div>
+        <div class="detail-row">
+          <label>Floor & Wing:</label>
+          <p id="modalFloorWing"></p>
+        </div>
+        <div class="detail-row">
+          <label>Submitted:</label>
+          <p id="modalDate"></p>
+        </div>
+        <div class="detail-row" id="attachmentRow">
+          <label>Attachment:</label>
+          <a id="modalAttachment" href="#" target="_blank">View File</a>
+        </div>
+      </div>
+
+      <div class="modal-form">
+        <div class="form-group">
+          <label for="modalStatus">Update Status</label>
+          <select id="modalStatus">
+            <option value="Pending">Pending</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="modalResponse">Admin Response</label>
+          <textarea 
+            id="modalResponse" 
+            rows="4"
+            placeholder="Enter your response to this suggestion..."
+          ></textarea>
+        </div>
+
+        <div class="modal-buttons">
+          <button id="saveModalBtn" class="btn btn-primary">Save Changes</button>
+          <button id="deleteModalBtn" class="btn btn-danger">Delete</button>
+          <button class="btn btn-secondary modal-close-btn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+    <div class="spinner"></div>
+    <p>Loading...</p>
+  </div>
+
+  <script src="/js/admin-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Suggestion Box - Submit Your Feedback</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1>College Suggestion Box</h1>
+        <p class="tagline">Your Voice Matters - Submit Anonymous Feedback</p>
+      </div>
+      <nav class="nav">
+        <a href="/" class="nav-link active">Submit Suggestion</a>
+        <a href="/admin" class="nav-link">Admin Panel</a>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="form-container">
+        <section class="form-section">
+          <h2>Submit Your Suggestion</h2>
+          <p class="form-description">Help us improve our college by sharing your valuable feedback and suggestions anonymously.</p>
+
+          <form id="suggestionForm" class="suggestion-form">
+            <!-- Title Field -->
+            <div class="form-group">
+              <label for="title">Suggestion Title *</label>
+              <input 
+                type="text" 
+                id="title" 
+                name="title" 
+                placeholder="Brief title of your suggestion"
+                required
+              >
+              <small class="error-message" id="titleError"></small>
+            </div>
+
+            <!-- Message Field -->
+            <div class="form-group">
+              <label for="message">Detailed Message *</label>
+              <textarea 
+                id="message" 
+                name="message" 
+                rows="5"
+                placeholder="Describe your suggestion or feedback in detail..."
+                required
+              ></textarea>
+              <small class="error-message" id="messageError"></small>
+            </div>
+
+            <!-- Area Selection -->
+            <div class="form-group">
+              <label for="area">Area / Location *</label>
+              <select id="area" name="area" required>
+                <option value="">Select an area...</option>
+                <option value="Library">Library</option>
+                <option value="Cafeteria">Cafeteria</option>
+                <option value="Classroom">Classroom</option>
+                <option value="Laboratory">Laboratory</option>
+                <option value="Other">Other</option>
+              </select>
+              <small class="error-message" id="areaError"></small>
+            </div>
+
+            <!-- Floor and Wing -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="floor">Floor (Optional)</label>
+                <input 
+                  type="number" 
+                  id="floor" 
+                  name="floor" 
+                  min="0" 
+                  max="10"
+                  placeholder="Floor number"
+                >
+              </div>
+              <div class="form-group">
+                <label for="wing">Wing / Section *</label>
+                <select id="wing" name="wing" required>
+                  <option value="">Select wing...</option>
+                  <option value="A">Wing A</option>
+                  <option value="B">Wing B</option>
+                  <option value="C">Wing C</option>
+                  <option value="N/A">N/A</option>
+                </select>
+                <small class="error-message" id="wingError"></small>
+              </div>
+            </div>
+
+            <!-- File Upload -->
+            <div class="form-group">
+              <label for="image">Attach Image or Document (Optional)</label>
+              <div class="file-upload">
+                <input 
+                  type="file" 
+                  id="image" 
+                  name="image" 
+                  accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"
+                >
+                <span class="file-upload-label">Choose file (Max 5MB)</span>
+              </div>
+              <small class="file-info">Supported: JPG, PNG, PDF, DOC. Max size: 5MB</small>
+              <small class="error-message" id="imageError"></small>
+              <div id="filePreview" class="file-preview"></div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-large">
+              <span class="btn-text">Submit Suggestion</span>
+              <span class="btn-loader" style="display: none;">Submitting...</span>
+            </button>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="alert alert-success" style="display: none;">
+              <p id="successText"></p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="alert alert-error" style="display: none;">
+              <p id="errorText"></p>
+            </div>
+          </form>
+        </section>
+
+        <!-- Info Box -->
+        <aside class="info-section">
+          <div class="info-box">
+            <h3>Why Submit Here?</h3>
+            <ul>
+              <li>Completely Anonymous</li>
+              <li>Your Identity Protected</li>
+              <li>Direct to Management</li>
+              <li>Trackable Status</li>
+              <li>Quick Response</li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <h3>Guidelines</h3>
+            <ul>
+              <li>• Be Clear & Specific</li>
+              <li>• Provide Context</li>
+              <li>• Attach Evidence if Needed</li>
+              <li>• Be Respectful</li>
+              <li>• One Suggestion per Form</li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <h3>Quick Stats</h3>
+            <div class="stats">
+              <div class="stat-item">
+                <span class="stat-number" id="totalSuggestions">0</span>
+                <span class="stat-label">Total Suggestions</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="resolvedSuggestions">0</span>
+                <span class="stat-label">Resolved</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2024 College Suggestion Box System. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

@@ -52,10 +52,6 @@ initDB().then((dbInitialized) => {
     res.sendFile(path.join(__dirname, 'views', 'confirmation.html'));
   });
 
-  app.get('/track', (req, res) => {
-    res.sendFile(path.join(__dirname, 'views', 'track.html'));
-  });
-
   // 404 Error Handler
   app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'views', 'index.html'));

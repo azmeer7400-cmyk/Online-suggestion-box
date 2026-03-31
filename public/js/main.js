@@ -83,19 +83,10 @@ document.addEventListener('DOMContentLoaded', function() {
         form.reset();
         filePreview.classList.remove('show');
 
-        // Store tracking ID in session and redirect
-        const trackingId = data.suggestion ? data.suggestion.id : null;
-        if (trackingId) {
-          sessionStorage.setItem('lastTrackingId', trackingId);
-          setTimeout(() => {
-            window.location.href = `/confirmation?id=${trackingId}`;
-          }, 2000);
-        } else {
-          // Fallback if ID not provided
-          setTimeout(() => {
-            window.location.href = '/confirmation';
-          }, 2000);
-        }
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          window.location.href = '/confirmation';
+        }, 2000);
       } else {
         const errorMsg = data.message || 'Error submitting suggestion';
         console.error('Submission error:', errorMsg);

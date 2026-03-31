@@ -5,61 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Submission Confirmed - Online Suggestion Box</title>
   <link rel="stylesheet" href="/css/styles.css">
-  <style>
-    .tracking-id-box {
-      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      margin: 20px 0;
-    }
-
-    .tracking-id-box h3 {
-      margin: 0 0 10px 0;
-      font-size: 14px;
-      opacity: 0.9;
-    }
-
-    .tracking-id-box .id-display {
-      font-size: 32px;
-      font-weight: bold;
-      letter-spacing: 2px;
-      font-family: monospace;
-      margin: 10px 0;
-    }
-
-    .tracking-id-box .copy-btn {
-      background: rgba(255,255,255,0.2);
-      border: 1px solid rgba(255,255,255,0.5);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      margin-top: 10px;
-      transition: background 0.3s;
-    }
-
-    .tracking-id-box .copy-btn:hover {
-      background: rgba(255,255,255,0.3);
-    }
-
-    .track-link {
-      display: inline-block;
-      margin-top: 15px;
-      padding: 10px 20px;
-      background: var(--primary-color);
-      color: white;
-      text-decoration: none;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-
-    .track-link:hover {
-      background: #1e40af;
-    }
-  </style>
 </head>
 <body>
   <div class="confirmation-container">
@@ -68,17 +13,9 @@
       <h1>Thank You!</h1>
       <p class="confirmation-message">Your suggestion has been submitted successfully.</p>
       
-      <div class="tracking-id-box">
-        <h3>Your Tracking ID</h3>
-        <div class="id-display" id="trackingId">--</div>
-        <button class="copy-btn" onclick="copyTrackingId()">📋 Copy ID</button>
-      </div>
-
       <div class="confirmation-details">
         <p>Your feedback has been received and will be reviewed by the college management.</p>
-        <p><strong>Save your ID above to track the status of your suggestion!</strong></p>
-        
-        <a href="/track" class="track-link">🔍 Track Your Suggestion</a>
+        <p><strong>Note:</strong> Since your submission is anonymous, you won't be able to track its status. However, we assure you that every suggestion is carefully considered.</p>
       </div>
 
       <div class="confirmation-actions">
@@ -91,42 +28,11 @@
         <ol>
           <li>Your suggestion is safely stored in our system</li>
           <li>The college management reviews it</li>
-          <li>Your suggestion status is updated (Pending → Under Review → Resolved/Rejected)</li>
-          <li>You can track it using your ID to see the admin's response</li>
+          <li>Action is taken based on relevance and feasibility</li>
+          <li>College continues to improve based on your feedback</li>
         </ol>
       </div>
     </div>
   </div>
-
-  <script>
-    // Get tracking ID from URL parameter or session
-    document.addEventListener('DOMContentLoaded', function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const trackingId = urlParams.get('id');
-      
-      if (trackingId) {
-        document.getElementById('trackingId').textContent = trackingId;
-        // Store in session storage for reference
-        sessionStorage.setItem('lastTrackingId', trackingId);
-      } else {
-        // Try to get from session storage
-        const storedId = sessionStorage.getItem('lastTrackingId');
-        if (storedId) {
-          document.getElementById('trackingId').textContent = storedId;
-        }
-      }
-    });
-
-    function copyTrackingId() {
-      const trackingId = document.getElementById('trackingId').textContent;
-      if (trackingId && trackingId !== '--') {
-        navigator.clipboard.writeText(trackingId).then(() => {
-          alert('Tracking ID copied to clipboard!');
-        }).catch(err => {
-          console.error('Failed to copy:', err);
-        });
-      }
-    }
-  </script>
 </body>
 </html>

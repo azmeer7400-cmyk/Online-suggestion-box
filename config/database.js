@@ -168,46 +168,6 @@ class Database {
   }
 }
 
-/**
- * Generate unique 6-8 digit tracking ID
- */
-const generateTrackingId = () => {
-  // Generate random 6-8 digit number
-  const min = 100000; // 6 digits
-  const max = 99999999; // 8 digits
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-
-/**
- * Get unique tracking ID (ensure it doesn't exist in database)
- */
-const getUniqueTrackingId = () => {
-  let trackingId;
-  let attempts = 0;
-  const maxAttempts = 10;
-
-  while (attempts < maxAttempts) {
-    trackingId = generateTrackingId();
-    
-    // Check if this tracking ID already exists
-    try {
-      const checkStmt = db.prepare('SELECT * FROM suggestions WHERE tracking_id = ?');
-      const exists = checkStmt.get(trackingId);
-      
-      if (!exists) {
-        return trackingId;
-      }
-    } catch (e) {
-      // Table might not exist yet on first run
-      return trackingId;
-    }
-    
-    attempts++;
-  }
-
-  throw new Error('Unable to generate unique tracking ID after 10 attempts');
-};
-
 const dbWrapper = new Database();
 
 /**
@@ -231,7 +191,6 @@ const initDB = async () => {
     db.run(`
       CREATE TABLE IF NOT EXISTS suggestions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tracking_id TEXT UNIQUE,
         title TEXT NOT NULL,
         message TEXT NOT NULL,
         area TEXT NOT NULL,
@@ -244,73 +203,6 @@ const initDB = async () => {
         response_date DATETIME
       )
     `);
-
-    // Migrate existing database: add tracking_id column if it doesn't exist
-    console.log('Checking if migration is needed...');
-    try {
-      // Try to query tracking_id to see if column exists
-      const testStmt = db.prepare('SELECT tracking_id FROM suggestions LIMIT 1');
-      testStmt.get();
-      console.log('tracking_id column already exists');
-    } catch (e) {
-      // Column doesn't exist, need to migrate
-      console.log('tracking_id column missing. Attempting migration...');
-      try {
-        // Try ALTER TABLE first
-        db.run(`ALTER TABLE suggestions ADD COLUMN tracking_id TEXT UNIQUE`);
-        console.log('Successfully added tracking_id column via ALTER TABLE');
-        saveDb();
-        
-        // Generate tracking IDs for existing suggestions
-        try {
-          const getAllStmt = db.prepare(`SELECT id FROM suggestions WHERE tracking_id IS NULL`);
-          const suggestions = getAllStmt.all();
-          
-          if (suggestions && suggestions.length > 0) {
-            console.log(`Generating tracking IDs for ${suggestions.length} existing suggestions...`);
-            const updateStmt = db.prepare(`UPDATE suggestions SET tracking_id = ? WHERE id = ?`);
-            suggestions.forEach((row, index) => {
-              const trackingId = (100000 + index).toString();
-              updateStmt.run(trackingId, row.id);
-            });
-            saveDb();
-            console.log('Successfully generated tracking IDs');
-          }
-        } catch (generationError) {
-          console.log('Error generating tracking IDs:', generationError.message);
-        }
-      } catch (altError) {
-        console.log('ALTER TABLE failed, dropping and recreating table...');
-        try {
-          // If ALTER fails, drop the old table and let it be recreated
-          db.run(`DROP TABLE IF EXISTS suggestions`);
-          console.log('Dropped old suggestions table');
-          saveDb();
-          
-          // Recreate with new schema
-          db.run(`
-            CREATE TABLE suggestions (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              tracking_id TEXT UNIQUE,
-              title TEXT NOT NULL,
-              message TEXT NOT NULL,
-              area TEXT NOT NULL,
-              floor INTEGER,
-              wing TEXT NOT NULL,
-              image_path TEXT,
-              submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-              status TEXT DEFAULT 'Pending',
-              admin_response TEXT,
-              response_date DATETIME
-            )
-          `);
-          console.log('Recreated suggestions table with tracking_id column');
-          saveDb();
-        } catch (dropError) {
-          console.log('Error dropping/recreating table:', dropError.message);
-        }
-      }
-    }
 
     try {
       db.run(`CREATE INDEX IF NOT EXISTS idx_suggestions_status ON suggestions(status)`);
@@ -337,7 +229,5 @@ const initDB = async () => {
 
 module.exports = {
   db: dbWrapper,
-  initDB,
-  generateTrackingId,
-  getUniqueTrackingId
+  initDB
 };

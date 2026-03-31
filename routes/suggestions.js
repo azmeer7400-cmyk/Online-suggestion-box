@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { db, getUniqueTrackingId } = require('../config/database');
+const { db } = require('../config/database');
 
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.docx'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -39,9 +39,8 @@ const upload = multer({
  * Format database row to API response format
  */
 const formatSuggestion = (row) => ({
-  _id: row.tracking_id,
-  id: row.tracking_id,
-  trackingId: row.tracking_id,
+  _id: row.id,
+  id: row.id,
   title: row.title,
   message: row.message,
   area: row.area,
@@ -99,16 +98,13 @@ router.post('/submit', upload.single('image'), (req, res) => {
         message: 'Message must be at least 10 characters'
       });
     }
-// Generate unique tracking ID
-    const trackingId = getUniqueTrackingId();
 
     const stmt = db.prepare(`
-      INSERT INTO suggestions (tracking_id, title, message, area, floor, wing, image_path)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO suggestions (title, message, area, floor, wing, image_path)
+      VALUES (?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
-      trackingId,
       title.trim(),
       message.trim(),
       area,
@@ -118,8 +114,8 @@ router.post('/submit', upload.single('image'), (req, res) => {
     );
 
     // Fetch the created suggestion to return full data
-    const getSuggestion = db.prepare('SELECT * FROM suggestions WHERE tracking_id = ?');
-    const suggestion = getSuggestion.get(trackingId);
+    const getSuggestion = db.prepare('SELECT * FROM suggestions WHERE id = ?');
+    const suggestion = getSuggestion.get(result.lastID);
 
     res.status(201).json({ 
       success: true, 
@@ -217,7 +213,7 @@ router.put('/update/:id', (req, res) => {
     const stmt = db.prepare(`
       UPDATE suggestions 
       SET status = ?, admin_response = ?, response_date = CURRENT_TIMESTAMP
-      WHERE tracking_id = ?
+      WHERE id = ?
     `);
 
     const result = stmt.run(status, adminResponse || null, req.params.id);
@@ -226,7 +222,7 @@ router.put('/update/:id', (req, res) => {
       return res.status(404).json({ message: 'Suggestion not found' });
     }
 
-    const getSuggestion = db.prepare('SELECT * FROM suggestions WHERE tracking_id = ?');
+    const getSuggestion = db.prepare('SELECT * FROM suggestions WHERE id = ?');
     const suggestion = getSuggestion.get(req.params.id);
 
     res.json({ 
@@ -246,7 +242,7 @@ router.put('/update/:id', (req, res) => {
  */
 router.delete('/delete/:id', (req, res) => {
   try {
-    const stmt = db.prepare('DELETE FROM suggestions WHERE tracking_id = ?');
+    const stmt = db.prepare('DELETE FROM suggestions WHERE id = ?');
     const result = stmt.run(req.params.id);
     
     if (result.changes === 0) {
@@ -299,35 +295,6 @@ router.get('/stats', (req, res) => {
   } catch (error) {
     console.error('Error fetching statistics:', error);
     res.status(500).json({ message: 'Server error' });
-  }
-});
-
-/**
- * GET /api/suggestions/track/:id
- * Track suggestion status by ID (public endpoint, no auth required)
- */
-router.get('/track/:id', (req, res) => {
-  try {
-    const stmt = db.prepare('SELECT * FROM suggestions WHERE tracking_id = ?');
-    const suggestion = stmt.get(req.params.id);
-
-    if (!suggestion) {
-      return res.status(404).json({ 
-        found: false,
-        message: 'Suggestion not found. Please check your tracking ID.' 
-      });
-    }
-
-    res.json({
-      found: true,
-      suggestion: formatSuggestion(suggestion)
-    });
-  } catch (error) {
-    console.error('Error tracking suggestion:', error);
-    res.status(500).json({ 
-      found: false,
-      message: 'Server error' 
-    });
   }
 });
 

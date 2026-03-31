@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Form submission
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
+    console.log('Form submit event triggered');
 
     // Clear previous messages
     successMessage.style.display = 'none';
@@ -38,11 +39,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Validate form
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
 
+    console.log('Form validation passed');
+
     // Prepare form data
     const formData = new FormData(form);
+    console.log('Form data prepared:', {
+      title: formData.get('title'),
+      message: formData.get('message'),
+      area: formData.get('area'),
+      wing: formData.get('wing')
+    });
 
     // Show loading state
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -53,14 +63,18 @@ document.addEventListener('DOMContentLoaded', function() {
     btnLoader.style.display = 'inline-block';
 
     try {
+      console.log('Sending request to /api/suggestions/submit');
       const response = await fetch('/api/suggestions/submit', {
         method: 'POST',
         body: formData
       });
 
+      console.log('Response received:', response.status, response.statusText);
       const data = await response.json();
+      console.log('Response body:', data);
 
       if (response.ok && data.success) {
+        console.log('Success! Redirecting to confirmation');
         // Show success message
         document.getElementById('successText').textContent = data.message;
         successMessage.style.display = 'block';
@@ -74,11 +88,13 @@ document.addEventListener('DOMContentLoaded', function() {
           window.location.href = '/confirmation';
         }, 2000);
       } else {
-        showError(data.message || 'Error submitting suggestion');
+        const errorMsg = data.message || 'Error submitting suggestion';
+        console.error('Submission error:', errorMsg);
+        showError(errorMsg);
       }
     } catch (error) {
-      console.error('Error:', error);
-      showError('Network error. Please try again.');
+      console.error('Network/Request error:', error);
+      showError('Network error: ' + error.message);
     } finally {
       // Reset button state
       submitBtn.disabled = false;
@@ -160,12 +176,21 @@ document.addEventListener('DOMContentLoaded', function() {
   async function loadStatistics() {
     try {
       const response = await fetch('/api/suggestions/stats');
+      if (!response.ok) {
+        console.warn('Stats endpoint error:', response.status);
+        return;
+      }
       const stats = await response.json();
+      console.log('Stats loaded:', stats);
 
-      document.getElementById('totalSuggestions').textContent = stats.total;
-      document.getElementById('resolvedSuggestions').textContent = stats.resolved;
+      const totalEl = document.getElementById('totalSuggestions');
+      const resolvedEl = document.getElementById('resolvedSuggestions');
+      
+      if (totalEl) totalEl.textContent = stats.total || 0;
+      if (resolvedEl) resolvedEl.textContent = stats.resolved || 0;
     } catch (error) {
-      console.error('Error loading statistics:', error);
+      console.warn('Error loading statistics:', error);
+      // Don't break the form if stats fail to load
     }
   }
 });

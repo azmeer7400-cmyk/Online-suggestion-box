@@ -54,6 +54,21 @@ const formatSuggestion = (row) => ({
 });
 
 /**
+ * GET /api/suggestions/health
+ * Health check endpoint
+ */
+router.get('/health', (req, res) => {
+  try {
+    res.json({ 
+      status: 'ok',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+/**
  * POST /api/suggestions/submit
  * Submit a new suggestion with optional file attachment
  */

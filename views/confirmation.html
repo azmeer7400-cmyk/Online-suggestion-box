@@ -9,13 +9,26 @@
 <body>
   <div class="confirmation-container">
     <div class="confirmation-box">
-      <div class="confirmation-icon">✓</div>
+      <div class="confirmation-icon">Success</div>
       <h1>Thank You!</h1>
       <p class="confirmation-message">Your suggestion has been submitted successfully.</p>
       
+      <div id="trackingSection" class="tracking-section" style="display: none;">
+        <div class="tracking-box">
+          <h3>📌 Track Your Suggestion</h3>
+          <p>Use this code to check the status of your suggestion anytime:</p>
+          <div class="tracking-code-display">
+            <code id="trackingCodeDisplay"></code>
+            <button id="copyBtn" class="btn btn-small" title="Copy code">📋 Copy</button>
+          </div>
+          <p class="tracking-link-info">
+            Or share this link: <a id="trackingLink" href="#" target="_blank" class="tracking-link">View Suggestion Status</a>
+          </p>
+        </div>
+      </div>
+
       <div class="confirmation-details">
         <p>Your feedback has been received and will be reviewed by the college management.</p>
-        <p><strong>Note:</strong> Since your submission is anonymous, you won't be able to track its status. However, we assure you that every suggestion is carefully considered.</p>
       </div>
 
       <div class="confirmation-actions">
@@ -34,5 +47,31 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // Get tracking code from URL
+    const params = new URLSearchParams(window.location.search);
+    const trackingCode = params.get('code');
+
+    if (trackingCode) {
+      const trackingSection = document.getElementById('trackingSection');
+      const trackingCodeDisplay = document.getElementById('trackingCodeDisplay');
+      const trackingLink = document.getElementById('trackingLink');
+      const copyBtn = document.getElementById('copyBtn');
+
+      trackingCodeDisplay.textContent = trackingCode;
+      trackingLink.href = `/track?code=${trackingCode}`;
+      trackingSection.style.display = 'block';
+
+      copyBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(trackingCode).then(() => {
+          copyBtn.textContent = '✓ Copied';
+          setTimeout(() => {
+            copyBtn.textContent = '📋 Copy';
+          }, 2000);
+        });
+      });
+    }
+  </script>
 </body>
 </html>

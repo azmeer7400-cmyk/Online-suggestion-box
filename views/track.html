@@ -3,314 +3,342 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Track Suggestion - Online Suggestion Box</title>
+  <title>Track Your Suggestion - Online Suggestion Box</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     .track-container {
       max-width: 600px;
-      margin: 0 auto;
-      padding: 40px 20px;
+      margin: 40px auto;
+      padding: 20px;
     }
 
-    #trackingResults {
+    .track-box {
+      background: white;
+      border-radius: 8px;
+      padding: 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .track-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .track-header h1 {
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    .track-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .track-form input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .track-form button {
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .track-form button:hover {
+      background: #1e40af;
+    }
+
+    .suggestion-result {
       display: none;
+    }
+
+    .status-card {
+      background: #f8fafc;
+      border-left: 4px solid var(--primary-color);
+      padding: 20px;
+      border-radius: 4px;
+      margin-bottom: 20px;
     }
 
     .status-badge {
       display: inline-block;
       padding: 8px 16px;
       border-radius: 20px;
+      font-size: 12px;
       font-weight: 600;
-      margin: 10px 0;
+      margin-bottom: 15px;
     }
 
     .status-badge.pending {
-      background-color: #fef3c7;
+      background: #fef3c7;
       color: #92400e;
     }
 
     .status-badge.under-review {
-      background-color: #dbeafe;
+      background: #dbeafe;
       color: #1e40af;
     }
 
     .status-badge.resolved {
-      background-color: #dcfce7;
-      color: #15803d;
+      background: #d1fae5;
+      color: #065f46;
     }
 
     .status-badge.rejected {
-      background-color: #fee2e2;
-      color: #991b1b;
+      background: #fee2e2;
+      color: #7f1d1d;
     }
 
-    .tracking-info {
-      background: #f8fafc;
-      padding: 20px;
-      border-radius: 8px;
-      margin: 20px 0;
-      border-left: 4px solid var(--primary-color);
+    .suggestion-detail {
+      margin-bottom: 20px;
     }
 
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .info-row:last-child {
-      border-bottom: none;
-    }
-
-    .info-label {
+    .detail-label {
       font-weight: 600;
-      color: var(--text-dark);
+      color: var(--primary-color);
+      margin-bottom: 5px;
     }
 
-    .info-value {
-      color: var(--text-light);
-      word-break: break-word;
-      text-align: right;
+    .detail-value {
+      color: var(--text-dark);
+      line-height: 1.6;
     }
 
     .admin-response-box {
-      background: #f1f5f9;
+      background: #e0f2fe;
+      border-left: 4px solid var(--success-color);
       padding: 15px;
-      border-radius: 6px;
+      border-radius: 4px;
       margin-top: 15px;
-      border-left: 3px solid var(--success-color);
     }
 
-    .admin-response-box h4 {
-      margin: 0 0 10px 0;
+    .admin-response-box .detail-label {
       color: var(--success-color);
     }
 
-    .admin-response-box p {
-      margin: 0;
-      color: var(--text-dark);
-    }
-
     .error-message {
-      color: var(--danger-color);
+      background: #fee2e2;
+      color: #991b1b;
       padding: 15px;
-      background-color: #fee2e2;
-      border-radius: 6px;
-      margin: 20px 0;
+      border-radius: 4px;
       display: none;
+      margin-bottom: 20px;
     }
 
-    .back-to-home {
+    .loading-spinner {
+      display: none;
       text-align: center;
-      margin-top: 30px;
+      margin: 20px 0;
     }
 
-    .back-to-home a {
+    .spinner {
+      border: 4px solid #f3f4f6;
+      border-top: 4px solid var(--primary-color);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state p {
+      margin-bottom: 20px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
       color: var(--primary-color);
       text-decoration: none;
-      border: 1px solid var(--primary-color);
-      padding: 10px 20px;
-      border-radius: 4px;
-      display: inline-block;
-      transition: all 0.3s ease;
+      font-weight: 600;
     }
 
-    .back-to-home a:hover {
-      background-color: var(--primary-color);
-      color: white;
-    }
-
-    .empty-message {
-      text-align: center;
-      padding: 20px;
-      color: var(--text-light);
+    .back-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body class="track-page">
-  <div class="header">
-    <div class="container">
-      <h1>📋 Online Suggestion Box</h1>
-      <p>Track your suggestion status</p>
-    </div>
-  </div>
-
-  <div class="main-content">
+  <div class="container">
     <div class="track-container">
-      <div id="trackingForm">
-        <h2>Track Your Suggestion</h2>
-        <p style="color: var(--text-light); margin-bottom: 20px;">
-          Enter your suggestion ID to check the status of your submission.
-        </p>
+      <div class="track-box">
+        <div class="track-header">
+          <h1>Track Your Suggestion</h1>
+          <p>Check the status of your suggestion using the tracking code you received</p>
+        </div>
 
-        <form id="trackForm" class="login-form">
-          <div class="form-group">
-            <label for="trackingId">Suggestion ID</label>
-            <input 
-              type="text" 
-              id="trackingId" 
-              name="trackingId" 
-              placeholder="e.g., 1, 2, 3..."
-              required
-              autofocus
-            >
-            <small style="color: var(--text-light);">This ID was shown on your confirmation page</small>
+        <form class="track-form" id="trackForm">
+          <input 
+            type="text" 
+            id="codeInput" 
+            placeholder="Enter your tracking code"
+            autocomplete="off"
+            required
+          >
+          <button type="submit">Search</button>
+        </form>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="loading-spinner" id="loadingSpinner">
+          <div class="spinner"></div>
+          <p>Searching...</p>
+        </div>
+
+        <div class="suggestion-result" id="suggestionResult">
+          <div class="status-card">
+            <div class="status-badge" id="statusBadge"></div>
+            
+            <div class="suggestion-detail">
+              <div class="detail-label">Title</div>
+              <div class="detail-value" id="detailTitle"></div>
+            </div>
+
+            <div class="suggestion-detail">
+              <div class="detail-label">Message</div>
+              <div class="detail-value" id="detailMessage"></div>
+            </div>
+
+            <div class="suggestion-detail">
+              <div class="detail-label">Area</div>
+              <div class="detail-value" id="detailArea"></div>
+            </div>
+
+            <div class="suggestion-detail">
+              <div class="detail-label">Location</div>
+              <div class="detail-value" id="detailLocation"></div>
+            </div>
+
+            <div class="suggestion-detail">
+              <div class="detail-label">Submitted On</div>
+              <div class="detail-value" id="detailDate"></div>
+            </div>
+
+            <div id="adminResponseContainer" class="admin-response-box" style="display: none;">
+              <div class="detail-label">Admin Response</div>
+              <div class="detail-value" id="detailResponse"></div>
+              <div class="detail-label" style="margin-top: 10px;">Response Date</div>
+              <div class="detail-value" id="detailResponseDate"></div>
+            </div>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">
-            <span class="btn-text">Track Suggestion</span>
-            <span class="btn-loader" style="display: none;">Searching...</span>
-          </button>
+          <a href="/" class="back-link">← Submit Another Suggestion</a>
+        </div>
 
-          <div class="error-message" id="errorMessage"></div>
-        </form>
-      </div>
-
-      <div id="trackingResults">
-        <div id="resultContent"></div>
-
-        <div class="back-to-home">
-          <a href="/" onclick="resetForm()">← Back to Submit New Suggestion</a>
+        <div class="empty-state" id="emptyState">
+          <p>📝 Enter your tracking code above to view your suggestion status</p>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    document.getElementById('trackForm').addEventListener('submit', async (e) => {
+    const form = document.getElementById('trackForm');
+    const codeInput = document.getElementById('codeInput');
+    const errorMessage = document.getElementById('errorMessage');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const suggestionResult = document.getElementById('suggestionResult');
+    const emptyState = document.getElementById('emptyState');
+
+    // Check URL for code parameter
+    const params = new URLSearchParams(window.location.search);
+    const urlCode = params.get('code');
+    if (urlCode) {
+      codeInput.value = urlCode;
+      searchSuggestion(urlCode);
+    }
+
+    form.addEventListener('submit', async function(e) {
       e.preventDefault();
-      
-      const trackingId = document.getElementById('trackingId').value.trim();
-      const errorMsg = document.getElementById('errorMessage');
-      const btn = e.target.querySelector('.btn-text');
-      const loader = e.target.querySelector('.btn-loader');
-
-      if (!trackingId) {
-        errorMsg.textContent = 'Please enter your suggestion ID';
-        errorMsg.style.display = 'block';
-        return;
+      const code = codeInput.value.trim().toUpperCase();
+      if (code) {
+        searchSuggestion(code);
       }
+    });
 
-      // Show loading state
-      btn.style.display = 'none';
-      loader.style.display = 'inline';
-      errorMsg.style.display = 'none';
+    async function searchSuggestion(code) {
+      // Reset messages
+      errorMessage.style.display = 'none';
+      suggestionResult.style.display = 'none';
+      emptyState.style.display = 'none';
+      loadingSpinner.style.display = 'block';
 
       try {
-        const response = await fetch(`/api/suggestions/track/${encodeURIComponent(trackingId)}`);
+        const response = await fetch(`/api/suggestions/track/${code}`);
         const data = await response.json();
 
-        if (data.found && data.suggestion) {
-          displaySuggestionStatus(data.suggestion);
+        loadingSpinner.style.display = 'none';
+
+        if (response.ok && data.success) {
+          const suggestion = data.suggestion;
+
+          // Update status badge
+          const statusBadge = document.getElementById('statusBadge');
+          statusBadge.textContent = suggestion.status;
+          statusBadge.className = 'status-badge ' + suggestion.status.toLowerCase().replace(' ', '-');
+
+          // Update details
+          document.getElementById('detailTitle').textContent = suggestion.title;
+          document.getElementById('detailMessage').textContent = suggestion.message;
+          document.getElementById('detailArea').textContent = suggestion.area;
+          document.getElementById('detailLocation').textContent = `Floor ${suggestion.floor}, Wing ${suggestion.wing}`;
+          document.getElementById('detailDate').textContent = formatDate(suggestion.submittedAt);
+
+          // Show admin response if available
+          const responseContainer = document.getElementById('adminResponseContainer');
+          if (suggestion.adminResponse) {
+            document.getElementById('detailResponse').textContent = suggestion.adminResponse;
+            document.getElementById('detailResponseDate').textContent = formatDate(suggestion.responseDate);
+            responseContainer.style.display = 'block';
+          } else {
+            responseContainer.style.display = 'none';
+          }
+
+          suggestionResult.style.display = 'block';
         } else {
-          errorMsg.textContent = data.message || 'Suggestion not found. Please check your ID and try again.';
-          errorMsg.style.display = 'block';
+          errorMessage.textContent = '❌ Tracking code not found. Please check and try again.';
+          errorMessage.style.display = 'block';
         }
       } catch (error) {
         console.error('Error:', error);
-        errorMsg.textContent = 'Network error. Please try again.';
-        errorMsg.style.display = 'block';
-      } finally {
-        btn.style.display = 'inline';
-        loader.style.display = 'none';
+        loadingSpinner.style.display = 'none';
+        errorMessage.textContent = '❌ Error searching suggestion. Please try again.';
+        errorMessage.style.display = 'block';
       }
-    });
-
-    function displaySuggestionStatus(suggestion) {
-      const statusMap = {
-        'Pending': 'pending',
-        'Under Review': 'under-review',
-        'Resolved': 'resolved',
-        'Rejected': 'rejected'
-      };
-
-      const statusClass = statusMap[suggestion.status] || 'pending';
-      const formattedDate = new Date(suggestion.submittedAt).toLocaleString();
-      const responseDate = suggestion.responseDate ? new Date(suggestion.responseDate).toLocaleString() : 'Not yet responded';
-
-      let adminResponseHTML = '';
-      if (suggestion.adminResponse) {
-        adminResponseHTML = `
-          <div class="admin-response-box">
-            <h4>✅ Response from Admin</h4>
-            <p>${escapeHtml(suggestion.adminResponse)}</p>
-            <small>Responded: ${responseDate}</small>
-          </div>
-        `;
-      } else if (suggestion.status !== 'Pending') {
-        adminResponseHTML = `
-          <div class="admin-response-box">
-            <h4>📝 Under Review</h4>
-            <p>Your suggestion is being reviewed. An admin response will appear here soon.</p>
-          </div>
-        `;
-      }
-
-      const html = `
-        <h2>Your Suggestion Status</h2>
-        
-        <div class="status-badge ${statusClass}">
-          ${suggestion.status}
-        </div>
-
-        <div class="tracking-info">
-          <div class="info-row">
-            <span class="info-label">Tracking ID:</span>
-            <span class="info-value">#${suggestion.id}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Title:</span>
-            <span class="info-value">${escapeHtml(suggestion.title)}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Message:</span>
-            <span class="info-value" style="text-align: left;">${escapeHtml(suggestion.message)}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Area:</span>
-            <span class="info-value">${escapeHtml(suggestion.area)}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Location:</span>
-            <span class="info-value">Floor ${suggestion.floor}, Wing ${suggestion.wing}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Submitted:</span>
-            <span class="info-value">${formattedDate}</span>
-          </div>
-        </div>
-
-        ${adminResponseHTML}
-      `;
-
-      document.getElementById('resultContent').innerHTML = html;
-      document.getElementById('trackingForm').style.display = 'none';
-      document.getElementById('trackingResults').style.display = 'block';
     }
 
-    function resetForm() {
-      document.getElementById('trackForm').reset();
-      document.getElementById('trackingForm').style.display = 'block';
-      document.getElementById('trackingResults').style.display = 'none';
-      document.getElementById('trackingId').focus();
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
-
-    function escapeHtml(text) {
-      const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-      };
-      return text.replace(/[&<>"']/g, m => map[m]);
-    }
-
-    // Focus on input when page loads
-    window.addEventListener('load', () => {
-      document.getElementById('trackingId').focus();
-    });
   </script>
 </body>
 </html>

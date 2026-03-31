@@ -200,7 +200,8 @@ const initDB = async () => {
         submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         status TEXT DEFAULT 'Pending',
         admin_response TEXT,
-        response_date DATETIME
+        response_date DATETIME,
+        tracking_code TEXT UNIQUE NOT NULL
       )
     `);
 
@@ -212,6 +213,9 @@ const initDB = async () => {
     } catch (e) {}
     try {
       db.run(`CREATE INDEX IF NOT EXISTS idx_suggestions_submitted_at ON suggestions(submitted_at)`);
+    } catch (e) {}
+    try {
+      db.run(`CREATE INDEX IF NOT EXISTS idx_suggestions_tracking_code ON suggestions(tracking_code)`);
     } catch (e) {}
     try {
       db.run(`CREATE INDEX IF NOT EXISTS idx_admins_username ON admins(username)`);

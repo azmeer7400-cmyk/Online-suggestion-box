@@ -8,6 +8,18 @@ const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.pdf', '.doc', '.d
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 /**
+ * Generate a unique tracking code
+ */
+const generateTrackingCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 10; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
+/**
  * Configure multer for file upload handling
  */
 const storage = multer.diskStorage({
@@ -100,27 +112,26 @@ router.post('/submit', upload.single('image'), (req, res) => {
     }
 
     const stmt = db.prepare(`
-      INSERT INTO suggestions (title, message, area, floor, wing, image_path)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO suggestions (title, message, area, floor, wing, image_path, tracking_code)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
 
+    const trackingCode = generateTrackingCode();
     const result = stmt.run(
       title.trim(),
       message.trim(),
       area,
       floor ? parseInt(floor) : null,
       wing,
-      req.file ? '/uploads/' + req.file.filename : null
+      req.file ? '/uploads/' + req.file.filename : null,
+      trackingCode
     );
-
-    // Fetch the created suggestion to return full data
-    const getSuggestion = db.prepare('SELECT * FROM suggestions WHERE id = ?');
-    const suggestion = getSuggestion.get(result.lastID);
 
     res.status(201).json({ 
       success: true, 
       message: 'Suggestion submitted successfully',
-      suggestion: formatSuggestion(suggestion)
+      suggestionId: result.lastID,
+      trackingCode: trackingCode
     });
   } catch (error) {
     console.error('Error submitting suggestion:', error);
@@ -295,6 +306,47 @@ router.get('/stats', (req, res) => {
   } catch (error) {
     console.error('Error fetching statistics:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * GET /api/suggestions/track/:code
+ * Fetch suggestion by tracking code (public endpoint)
+ */
+router.get('/track/:code', (req, res) => {
+  try {
+    const { code } = req.params;
+    
+    if (!code || code.length < 5) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid tracking code' 
+      });
+    }
+
+    const stmt = db.prepare(`
+      SELECT * FROM suggestions WHERE tracking_code = ?
+    `);
+    
+    const suggestion = stmt.get(code);
+
+    if (!suggestion) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Suggestion not found' 
+      });
+    }
+
+    res.json({
+      success: true,
+      suggestion: formatSuggestion(suggestion)
+    });
+  } catch (error) {
+    console.error('Error fetching suggestion by tracking code:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error' 
+    });
   }
 });
 

@@ -83,10 +83,9 @@ document.addEventListener('DOMContentLoaded', function() {
         form.reset();
         filePreview.classList.remove('show');
 
-        // Redirect after 2 seconds with tracking code
+        // Redirect after 2 seconds
         setTimeout(() => {
-          const trackingCode = data.trackingCode ? `?code=${data.trackingCode}` : '';
-          window.location.href = `/confirmation${trackingCode}`;
+          window.location.href = '/confirmation';
         }, 2000);
       } else {
         const errorMsg = data.message || 'Error submitting suggestion';

@@ -221,6 +221,42 @@ const initDB = async () => {
       db.run(`CREATE INDEX IF NOT EXISTS idx_admins_username ON admins(username)`);
     } catch (e) {}
 
+    // Migration: Add tracking_code column if it doesn't exist
+    try {
+      const tableInfo = db.prepare('PRAGMA table_info(suggestions)');
+      const columns = tableInfo.all();
+      const hasTrackingCode = columns.some(col => col.name === 'tracking_code');
+      
+      if (!hasTrackingCode) {
+        console.log('Migration: Adding tracking_code column to suggestions table');
+        db.run(`ALTER TABLE suggestions ADD COLUMN tracking_code TEXT UNIQUE`);
+        
+        // Generate tracking codes for existing suggestions
+        const suggestionsStmt = db.prepare('SELECT id FROM suggestions WHERE tracking_code IS NULL');
+        const suggestions = suggestionsStmt.all();
+        
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const generateCode = () => {
+          let code = '';
+          for (let i = 0; i < 10; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return code;
+        };
+        
+        for (const suggestion of suggestions) {
+          const code = generateCode();
+          const updateStmt = db.prepare('UPDATE suggestions SET tracking_code = ? WHERE id = ?');
+          updateStmt.run(code, suggestion.id);
+        }
+        
+        saveDb();
+        console.log('Migration completed: tracking_code column added and populated for', suggestions.length, 'existing suggestions');
+      }
+    } catch (e) {
+      console.log('Tracking code column already exists or migration not needed:', e.message);
+    }
+
     saveDb();
     console.log('Database initialized successfully');
     console.log('Database location: ' + dbPath);

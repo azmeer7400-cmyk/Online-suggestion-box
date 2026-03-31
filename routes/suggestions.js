@@ -57,7 +57,7 @@ const formatSuggestion = (row) => ({
  * POST /api/suggestions/submit
  * Submit a new suggestion with optional file attachment
  */
-router.post('/submit', upload.single('image'), async (req, res) => {
+router.post('/submit', upload.single('image'), (req, res) => {
   try {
     const { title, message, area, floor, wing } = req.body;
 
@@ -89,7 +89,7 @@ router.post('/submit', upload.single('image'), async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?)
     `);
 
-    const result = await stmt.run(
+    const result = stmt.run(
       title.trim(),
       message.trim(),
       area,
@@ -116,13 +116,13 @@ router.post('/submit', upload.single('image'), async (req, res) => {
  * GET /api/suggestions/all
  * Fetch all suggestions
  */
-router.get('/all', async (req, res) => {
+router.get('/all', (req, res) => {
   try {
     const stmt = db.prepare(`
       SELECT * FROM suggestions 
       ORDER BY submitted_at DESC
     `);
-    const suggestions = await stmt.all();
+    const suggestions = stmt.all();
     res.json(suggestions.map(formatSuggestion));
   } catch (error) {
     console.error('Error fetching suggestions:', error);
@@ -134,7 +134,7 @@ router.get('/all', async (req, res) => {
  * GET /api/suggestions/status/:status
  * Fetch suggestions by status
  */
-router.get('/status/:status', async (req, res) => {
+router.get('/status/:status', (req, res) => {
   try {
     const validStatuses = ['Pending', 'Under Review', 'Resolved', 'Rejected'];
     if (!validStatuses.includes(req.params.status)) {
@@ -146,7 +146,7 @@ router.get('/status/:status', async (req, res) => {
       WHERE status = ?
       ORDER BY submitted_at DESC
     `);
-    const suggestions = await stmt.all(req.params.status);
+    const suggestions = stmt.all(req.params.status);
     res.json(suggestions.map(formatSuggestion));
   } catch (error) {
     console.error('Error fetching suggestions by status:', error);
@@ -158,7 +158,7 @@ router.get('/status/:status', async (req, res) => {
  * GET /api/suggestions/area/:area
  * Fetch suggestions by area
  */
-router.get('/area/:area', async (req, res) => {
+router.get('/area/:area', (req, res) => {
   try {
     const validAreas = ['Library', 'Cafeteria', 'Classroom', 'Hostel', 'Laboratory', 'Sports', 'Other'];
     if (!validAreas.includes(req.params.area)) {
@@ -170,7 +170,7 @@ router.get('/area/:area', async (req, res) => {
       WHERE area = ?
       ORDER BY submitted_at DESC
     `);
-    const suggestions = await stmt.all(req.params.area);
+    const suggestions = stmt.all(req.params.area);
     res.json(suggestions.map(formatSuggestion));
   } catch (error) {
     console.error('Error fetching suggestions by area:', error);
@@ -182,7 +182,7 @@ router.get('/area/:area', async (req, res) => {
  * PUT /api/suggestions/update/:id
  * Update suggestion status and admin response
  */
-router.put('/update/:id', async (req, res) => {
+router.put('/update/:id', (req, res) => {
   try {
     const { status, adminResponse } = req.body;
     const validStatuses = ['Pending', 'Under Review', 'Resolved', 'Rejected'];
@@ -197,14 +197,14 @@ router.put('/update/:id', async (req, res) => {
       WHERE id = ?
     `);
 
-    const result = await stmt.run(status, adminResponse || null, req.params.id);
+    const result = stmt.run(status, adminResponse || null, req.params.id);
 
     if (result.changes === 0) {
       return res.status(404).json({ message: 'Suggestion not found' });
     }
 
     const getSuggestion = db.prepare('SELECT * FROM suggestions WHERE id = ?');
-    const suggestion = await getSuggestion.get(req.params.id);
+    const suggestion = getSuggestion.get(req.params.id);
 
     res.json({ 
       success: true, 
@@ -221,10 +221,10 @@ router.put('/update/:id', async (req, res) => {
  * DELETE /api/suggestions/delete/:id
  * Delete a suggestion
  */
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id', (req, res) => {
   try {
     const stmt = db.prepare('DELETE FROM suggestions WHERE id = ?');
-    const result = await stmt.run(req.params.id);
+    const result = stmt.run(req.params.id);
     
     if (result.changes === 0) {
       return res.status(404).json({ message: 'Suggestion not found' });
@@ -244,27 +244,27 @@ router.delete('/delete/:id', async (req, res) => {
  * GET /api/suggestions/stats
  * Get suggestion statistics
  */
-router.get('/stats', async (req, res) => {
+router.get('/stats', (req, res) => {
   try {
     const totalStmt = db.prepare('SELECT COUNT(*) as count FROM suggestions');
-    const totalResult = await totalStmt.get();
-    const total = totalResult.count;
+    const totalResult = totalStmt.get();
+    const total = totalResult ? totalResult.count : 0;
     
     const pendingStmt = db.prepare('SELECT COUNT(*) as count FROM suggestions WHERE status = ?');
-    const pendingResult = await pendingStmt.get('Pending');
-    const pending = pendingResult.count;
+    const pendingResult = pendingStmt.get('Pending');
+    const pending = pendingResult ? pendingResult.count : 0;
     
     const underReviewStmt = db.prepare('SELECT COUNT(*) as count FROM suggestions WHERE status = ?');
-    const underReviewResult = await underReviewStmt.get('Under Review');
-    const underReview = underReviewResult.count;
+    const underReviewResult = underReviewStmt.get('Under Review');
+    const underReview = underReviewResult ? underReviewResult.count : 0;
     
     const resolvedStmt = db.prepare('SELECT COUNT(*) as count FROM suggestions WHERE status = ?');
-    const resolvedResult = await resolvedStmt.get('Resolved');
-    const resolved = resolvedResult.count;
+    const resolvedResult = resolvedStmt.get('Resolved');
+    const resolved = resolvedResult ? resolvedResult.count : 0;
     
     const rejectedStmt = db.prepare('SELECT COUNT(*) as count FROM suggestions WHERE status = ?');
-    const rejectedResult = await rejectedStmt.get('Rejected');
-    const rejected = rejectedResult.count;
+    const rejectedResult = rejectedStmt.get('Rejected');
+    const rejected = rejectedResult ? rejectedResult.count : 0;
 
     res.json({
       total,

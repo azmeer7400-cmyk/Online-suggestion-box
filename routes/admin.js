@@ -18,7 +18,7 @@ const isAuthenticated = (req, res, next) => {
  * POST /api/admin/login
  * Authenticate admin user
  */
-router.post('/login', async (req, res) => {
+router.post('/login', (req, res) => {
   try {
     const { username, password } = req.body;
 
@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
     }
 
     const stmt = db.prepare('SELECT * FROM admins WHERE username = ?');
-    const admin = await stmt.get(username);
+    const admin = stmt.get(username);
 
     if (!admin) {
       return res.status(401).json({ 

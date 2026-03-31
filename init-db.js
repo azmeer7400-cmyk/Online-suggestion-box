@@ -17,7 +17,8 @@ async function runInitialization() {
     const hashedPassword = bcrypt.hashSync('admin123', 10);
 
     // Check if admin user already exists
-    const existingAdmin = await db.prepare('SELECT * FROM admins WHERE username = ?').get('admin');
+    const existingStmt = db.prepare('SELECT * FROM admins WHERE username = ?');
+    const existingAdmin = existingStmt.get('admin');
     
     if (existingAdmin) {
       console.log('Admin user already exists');
@@ -30,7 +31,7 @@ async function runInitialization() {
         VALUES (?, ?, ?)
       `);
 
-      await stmt.run('admin', hashedPassword, 'admin@college.edu');
+      stmt.run('admin', hashedPassword, 'admin@college.edu');
       console.log('Admin user created successfully');
       console.log('Username: admin');
       console.log('Password: admin123');
@@ -39,12 +40,12 @@ async function runInitialization() {
 
     // Display database statistics
     const totalSuggestionsStmt = db.prepare('SELECT COUNT(*) as count FROM suggestions');
-    const totalSuggestionsResult = await totalSuggestionsStmt.get();
-    const totalSuggestions = totalSuggestionsResult.count;
+    const totalSuggestionsResult = totalSuggestionsStmt.get();
+    const totalSuggestions = totalSuggestionsResult ? totalSuggestionsResult.count : 0;
 
     const totalAdminsStmt = db.prepare('SELECT COUNT(*) as count FROM admins');
-    const totalAdminsResult = await totalAdminsStmt.get();
-    const totalAdmins = totalAdminsResult.count;
+    const totalAdminsResult = totalAdminsStmt.get();
+    const totalAdmins = totalAdminsResult ? totalAdminsResult.count : 0;
 
     console.log('\nDatabase Statistics:');
     console.log('Total Suggestions: ' + totalSuggestions);

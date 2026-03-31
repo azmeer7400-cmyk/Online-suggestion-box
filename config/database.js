@@ -191,6 +191,7 @@ const initDB = async () => {
     db.run(`
       CREATE TABLE IF NOT EXISTS suggestions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tracking_id TEXT UNIQUE NOT NULL,
         title TEXT NOT NULL,
         message TEXT NOT NULL,
         area TEXT NOT NULL,
@@ -227,7 +228,44 @@ const initDB = async () => {
   }
 };
 
+/**
+ * Generate unique 6-8 digit tracking ID
+ */
+const generateTrackingId = () => {
+  // Generate random 6-8 digit number
+  const min = 100000; // 6 digits
+  const max = 99999999; // 8 digits
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+/**
+ * Get unique tracking ID (ensure it doesn't exist in database)
+ */
+const getUniqueTrackingId = () => {
+  let trackingId;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  while (attempts < maxAttempts) {
+    trackingId = generateTrackingId();
+    
+    // Check if this tracking ID already exists
+    const checkStmt = dbWrapper.prepare('SELECT * FROM suggestions WHERE tracking_id = ?');
+    const exists = checkStmt.get(trackingId);
+    
+    if (!exists) {
+      return trackingId;
+    }
+    
+    attempts++;
+  }
+
+  throw new Error('Unable to generate unique tracking ID after 10 attempts');
+};
+
 module.exports = {
   db: dbWrapper,
-  initDB
+  initDB,
+  generateTrackingId,
+  getUniqueTrackingId
 };

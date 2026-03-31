@@ -111,28 +111,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const wing = document.getElementById('wing').value;
     let isValid = true;
 
+    console.log('Validation check:', { title, message, area, wing });
+
     if (!title) {
+      console.log('Validation failed: No title');
       showFieldError('title', 'Title is required');
       isValid = false;
     } else if (title.length < 5) {
+      console.log('Validation failed: Title too short');
       showFieldError('title', 'Title must be at least 5 characters');
       isValid = false;
     }
 
     if (!message) {
+      console.log('Validation failed: No message');
       showFieldError('message', 'Message is required');
       isValid = false;
     } else if (message.length < 10) {
+      console.log('Validation failed: Message too short', message.length);
       showFieldError('message', 'Message must be at least 10 characters');
       isValid = false;
     }
 
     if (!area) {
+      console.log('Validation failed: No area');
       showFieldError('area', 'Please select an area');
       isValid = false;
     }
 
     if (!wing) {
+      console.log('Validation failed: No wing');
       showFieldError('wing', 'Please select a wing');
       isValid = false;
     }
@@ -143,11 +151,13 @@ document.addEventListener('DOMContentLoaded', function() {
       const maxSize = 5 * 1024 * 1024; // 5MB
 
       if (file.size > maxSize) {
+        console.log('Validation failed: File too large');
         showFieldError('image', 'File size must be less than 5MB');
         isValid = false;
       }
     }
 
+    console.log('Validation result:', isValid);
     return isValid;
   }
 

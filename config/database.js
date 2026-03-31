@@ -168,6 +168,46 @@ class Database {
   }
 }
 
+/**
+ * Generate unique 6-8 digit tracking ID
+ */
+const generateTrackingId = () => {
+  // Generate random 6-8 digit number
+  const min = 100000; // 6 digits
+  const max = 99999999; // 8 digits
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+/**
+ * Get unique tracking ID (ensure it doesn't exist in database)
+ */
+const getUniqueTrackingId = () => {
+  let trackingId;
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  while (attempts < maxAttempts) {
+    trackingId = generateTrackingId();
+    
+    // Check if this tracking ID already exists
+    try {
+      const checkStmt = db.prepare('SELECT * FROM suggestions WHERE tracking_id = ?');
+      const exists = checkStmt.get(trackingId);
+      
+      if (!exists) {
+        return trackingId;
+      }
+    } catch (e) {
+      // Table might not exist yet on first run
+      return trackingId;
+    }
+    
+    attempts++;
+  }
+
+  throw new Error('Unable to generate unique tracking ID after 10 attempts');
+};
+
 const dbWrapper = new Database();
 
 /**
@@ -205,6 +245,33 @@ const initDB = async () => {
       )
     `);
 
+    // Migrate existing database: add tracking_id column if it doesn't exist
+    try {
+      const checkColumn = db.prepare(`PRAGMA table_info(suggestions)`);
+      const columns = checkColumn.all();
+      const hasTrackingId = columns.some(col => col.name === 'tracking_id');
+      
+      if (!hasTrackingId) {
+        console.log('Migrating database: adding tracking_id column...');
+        db.run(`ALTER TABLE suggestions ADD COLUMN tracking_id TEXT UNIQUE`);
+        
+        // Generate tracking IDs for existing suggestions
+        const getAllStmt = db.prepare(`SELECT id FROM suggestions WHERE tracking_id IS NULL`);
+        const suggestions = getAllStmt.all();
+        
+        const updateStmt = db.prepare(`UPDATE suggestions SET tracking_id = ? WHERE id = ?`);
+        suggestions.forEach(row => {
+          const trackingId = getUniqueTrackingId();
+          updateStmt.run(trackingId, row.id);
+        });
+        
+        console.log(`Generated tracking IDs for ${suggestions.length} existing suggestions`);
+        saveDb();
+      }
+    } catch (e) {
+      console.log('Tracking ID column already exists or migration not needed:', e.message);
+    }
+
     try {
       db.run(`CREATE INDEX IF NOT EXISTS idx_suggestions_status ON suggestions(status)`);
     } catch (e) {}
@@ -226,41 +293,6 @@ const initDB = async () => {
     console.error('Database initialization error:', error.message);
     return false;
   }
-};
-
-/**
- * Generate unique 6-8 digit tracking ID
- */
-const generateTrackingId = () => {
-  // Generate random 6-8 digit number
-  const min = 100000; // 6 digits
-  const max = 99999999; // 8 digits
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
-
-/**
- * Get unique tracking ID (ensure it doesn't exist in database)
- */
-const getUniqueTrackingId = () => {
-  let trackingId;
-  let attempts = 0;
-  const maxAttempts = 10;
-
-  while (attempts < maxAttempts) {
-    trackingId = generateTrackingId();
-    
-    // Check if this tracking ID already exists
-    const checkStmt = dbWrapper.prepare('SELECT * FROM suggestions WHERE tracking_id = ?');
-    const exists = checkStmt.get(trackingId);
-    
-    if (!exists) {
-      return trackingId;
-    }
-    
-    attempts++;
-  }
-
-  throw new Error('Unable to generate unique tracking ID after 10 attempts');
 };
 
 module.exports = {

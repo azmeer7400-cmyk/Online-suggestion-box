@@ -124,8 +124,7 @@ router.post('/submit', upload.single('image'), (req, res) => {
     res.status(201).json({ 
       success: true, 
       message: 'Suggestion submitted successfully',
-      suggestion: formatSuggestion(suggestion)ted successfully',
-      suggestionId: result.lastID
+      suggestion: formatSuggestion(suggestion)
     });
   } catch (error) {
     console.error('Error submitting suggestion:', error);

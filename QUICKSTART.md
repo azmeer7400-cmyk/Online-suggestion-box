@@ -62,8 +62,8 @@ MongoDB Connected: localhost
 ### Admin Panel
 - **URL**: http://localhost:3000/admin
 - **Login with**:
-  - Username: `admin`
-  - Password: `admin123`
+  - Username: `bhaya`
+  - Password: `bhaya#69`
 - **Features**:
   - View all suggestions
   - Filter by status and area
@@ -284,6 +284,6 @@ Refer to:
 
 Your Online Suggestion Box is ready to use:
 - 👤 Users: http://localhost:3000
-- 🔐 Admin: http://localhost:3000/admin (admin/admin123)
+- 🔐 Admin: http://localhost:3000/admin (bhaya/bhaya#69)
 
 Happy coding! 🚀

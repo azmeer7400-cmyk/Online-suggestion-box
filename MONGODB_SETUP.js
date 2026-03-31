@@ -8,21 +8,21 @@
 // Connect to the database
 use suggestion_box
 
-// Create admin user with hashed password "admin123"
+// Create admin user with hashed password "bhaya#69"
 // Hash generated using bcryptjs at https://www.bcryptjs.com/
 db.admins.insertOne({
-  username: "admin",
-  password: "$2a$10$QiZb9F3tPL9X8W5J2kB3m.9YX8drPy0qZOQr8t.K3qUvKvqC8GdGS",
-  email: "admin@college.edu",
+  username: "bhaya",
+  password: "$2a$10$...", // hashed password of "bhaya#69"
+  email: "azmeer7400@gmail.com",
   createdAt: new Date()
 });
 
 // Verify insertion
-db.admins.findOne({ username: "admin" });
+db.admins.findOne({ username: "bhaya" });
 
 // You can now login with:
-// Username: admin
-// Password: admin123
+// Username: bhaya
+// Password: bhaya#69
 
 // Create indexes for better performance
 db.suggestions.createIndex({ submittedAt: -1 });

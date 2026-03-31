@@ -286,8 +286,8 @@ curl -X GET http://localhost:3000/api/suggestions/stats
 curl -X POST http://localhost:3000/api/admin/login \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "admin",
-    "password": "admin123"
+    "username": "bhaya",
+    "password": "bhaya#69"
   }' \
   -c cookies.txt
 ```

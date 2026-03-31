@@ -63,13 +63,17 @@ This system digitizes the traditional physical suggestion box with a user-friend
 
 5. **Create Admin User**
    
-   Before starting the server, you can create an admin user. Connect to MongoDB and run:
+   Before starting the server, the admin user is created automatically. Run:
+   ```bash
+   npm run init
+   ```
+   This creates:
    ```javascript
-   db.admins.insertOne({
-     username: "admin",
-     password: "$2a$10$...", // hashed password of "admin123"
-     email: "admin@college.edu"
-   })
+   {
+     username: "bhaya",
+     password: "$2a$10$...", // hashed password of "bhaya#69"
+     email: "azmeer7400@gmail.com"
+   }
    ```
 
 6. **Start the Server**
@@ -114,8 +118,8 @@ This system digitizes the traditional physical suggestion box with a user-friend
 1. **Login**
    - Go to http://localhost:3000/admin
    - Default credentials:
-     - Username: `admin`
-     - Password: `admin123`
+     - Username: `bhaya`
+     - Password: `bhaya#69`
 
 2. **Dashboard**
    - View statistics overview

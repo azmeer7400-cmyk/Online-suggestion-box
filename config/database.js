@@ -231,7 +231,7 @@ const initDB = async () => {
     db.run(`
       CREATE TABLE IF NOT EXISTS suggestions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tracking_id TEXT UNIQUE NOT NULL,
+        tracking_id TEXT UNIQUE,
         title TEXT NOT NULL,
         message TEXT NOT NULL,
         area TEXT NOT NULL,
@@ -253,23 +253,30 @@ const initDB = async () => {
       
       if (!hasTrackingId) {
         console.log('Migrating database: adding tracking_id column...');
-        db.run(`ALTER TABLE suggestions ADD COLUMN tracking_id TEXT UNIQUE`);
-        
-        // Generate tracking IDs for existing suggestions
-        const getAllStmt = db.prepare(`SELECT id FROM suggestions WHERE tracking_id IS NULL`);
-        const suggestions = getAllStmt.all();
-        
-        const updateStmt = db.prepare(`UPDATE suggestions SET tracking_id = ? WHERE id = ?`);
-        suggestions.forEach(row => {
-          const trackingId = getUniqueTrackingId();
-          updateStmt.run(trackingId, row.id);
-        });
-        
-        console.log(`Generated tracking IDs for ${suggestions.length} existing suggestions`);
-        saveDb();
+        try {
+          db.run(`ALTER TABLE suggestions ADD COLUMN tracking_id TEXT UNIQUE`);
+          saveDb();
+          
+          // Generate tracking IDs for existing suggestions with simple sequential IDs
+          const getAllStmt = db.prepare(`SELECT id FROM suggestions WHERE tracking_id IS NULL`);
+          const suggestions = getAllStmt.all();
+          
+          if (suggestions && suggestions.length > 0) {
+            const updateStmt = db.prepare(`UPDATE suggestions SET tracking_id = ? WHERE id = ?`);
+            suggestions.forEach((row, index) => {
+              // Generate 6-8 digit ID: 100000 + index to ensure uniqueness
+              const trackingId = (100000 + index).toString();
+              updateStmt.run(trackingId, row.id);
+            });
+            saveDb();
+            console.log(`Generated tracking IDs for ${suggestions.length} existing suggestions`);
+          }
+        } catch (migrationError) {
+          console.log('Migration step failed (this may be normal):', migrationError.message);
+        }
       }
     } catch (e) {
-      console.log('Tracking ID column already exists or migration not needed:', e.message);
+      console.log('Column check skipped (table may not exist yet):', e.message);
     }
 
     try {

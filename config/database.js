@@ -246,37 +246,41 @@ const initDB = async () => {
     `);
 
     // Migrate existing database: add tracking_id column if it doesn't exist
+    console.log('Checking if migration is needed...');
     try {
-      const checkColumn = db.prepare(`PRAGMA table_info(suggestions)`);
-      const columns = checkColumn.all();
-      const hasTrackingId = columns.some(col => col.name === 'tracking_id');
-      
-      if (!hasTrackingId) {
-        console.log('Migrating database: adding tracking_id column...');
+      // Try to query tracking_id to see if column exists
+      const testStmt = db.prepare('SELECT tracking_id FROM suggestions LIMIT 1');
+      testStmt.get();
+      console.log('tracking_id column already exists');
+    } catch (e) {
+      // Column doesn't exist, add it
+      console.log('Adding tracking_id column to suggestions table...');
+      try {
+        db.run(`ALTER TABLE suggestions ADD COLUMN tracking_id TEXT UNIQUE`);
+        saveDb();
+        console.log('Successfully added tracking_id column');
+        
+        // Generate tracking IDs for existing suggestions
         try {
-          db.run(`ALTER TABLE suggestions ADD COLUMN tracking_id TEXT UNIQUE`);
-          saveDb();
-          
-          // Generate tracking IDs for existing suggestions with simple sequential IDs
           const getAllStmt = db.prepare(`SELECT id FROM suggestions WHERE tracking_id IS NULL`);
           const suggestions = getAllStmt.all();
           
           if (suggestions && suggestions.length > 0) {
+            console.log(`Generating tracking IDs for ${suggestions.length} existing suggestions...`);
             const updateStmt = db.prepare(`UPDATE suggestions SET tracking_id = ? WHERE id = ?`);
             suggestions.forEach((row, index) => {
-              // Generate 6-8 digit ID: 100000 + index to ensure uniqueness
               const trackingId = (100000 + index).toString();
               updateStmt.run(trackingId, row.id);
             });
             saveDb();
-            console.log(`Generated tracking IDs for ${suggestions.length} existing suggestions`);
+            console.log('Successfully generated tracking IDs');
           }
-        } catch (migrationError) {
-          console.log('Migration step failed (this may be normal):', migrationError.message);
+        } catch (generationError) {
+          console.log('Could not generate tracking IDs:', generationError.message);
         }
+      } catch (altError) {
+        console.log('Could not add tracking_id column:', altError.message);
       }
-    } catch (e) {
-      console.log('Column check skipped (table may not exist yet):', e.message);
     }
 
     try {

@@ -253,12 +253,13 @@ const initDB = async () => {
       testStmt.get();
       console.log('tracking_id column already exists');
     } catch (e) {
-      // Column doesn't exist, add it
-      console.log('Adding tracking_id column to suggestions table...');
+      // Column doesn't exist, need to migrate
+      console.log('tracking_id column missing. Attempting migration...');
       try {
+        // Try ALTER TABLE first
         db.run(`ALTER TABLE suggestions ADD COLUMN tracking_id TEXT UNIQUE`);
+        console.log('Successfully added tracking_id column via ALTER TABLE');
         saveDb();
-        console.log('Successfully added tracking_id column');
         
         // Generate tracking IDs for existing suggestions
         try {
@@ -276,10 +277,38 @@ const initDB = async () => {
             console.log('Successfully generated tracking IDs');
           }
         } catch (generationError) {
-          console.log('Could not generate tracking IDs:', generationError.message);
+          console.log('Error generating tracking IDs:', generationError.message);
         }
       } catch (altError) {
-        console.log('Could not add tracking_id column:', altError.message);
+        console.log('ALTER TABLE failed, dropping and recreating table...');
+        try {
+          // If ALTER fails, drop the old table and let it be recreated
+          db.run(`DROP TABLE IF EXISTS suggestions`);
+          console.log('Dropped old suggestions table');
+          saveDb();
+          
+          // Recreate with new schema
+          db.run(`
+            CREATE TABLE suggestions (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              tracking_id TEXT UNIQUE,
+              title TEXT NOT NULL,
+              message TEXT NOT NULL,
+              area TEXT NOT NULL,
+              floor INTEGER,
+              wing TEXT NOT NULL,
+              image_path TEXT,
+              submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+              status TEXT DEFAULT 'Pending',
+              admin_response TEXT,
+              response_date DATETIME
+            )
+          `);
+          console.log('Recreated suggestions table with tracking_id column');
+          saveDb();
+        } catch (dropError) {
+          console.log('Error dropping/recreating table:', dropError.message);
+        }
       }
     }
 

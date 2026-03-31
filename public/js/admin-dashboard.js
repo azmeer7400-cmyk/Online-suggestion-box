@@ -151,6 +151,7 @@ async function loadRecentSuggestions() {
   try {
     const response = await fetch('/api/suggestions/all');
     const suggestions = await response.json();
+    console.log('All suggestions loaded:', suggestions);
 
     const recentList = document.getElementById('recentSuggestionsList');
     const recent = suggestions.slice(0, 5);
@@ -160,18 +161,21 @@ async function loadRecentSuggestions() {
       return;
     }
 
-    recentList.innerHTML = recent.map(suggestion => `
-      <div class="suggestion-item" onclick="openSuggestionModal('${suggestion._id}')">
-        <div class="suggestion-header">
-          <p class="suggestion-title">${escapeHtml(suggestion.title)}</p>
-          <span class="suggestion-status status-${getStatusClass(suggestion.status)}">${suggestion.status}</span>
+    recentList.innerHTML = recent.map(suggestion => {
+      console.log('Rendering suggestion:', suggestion);
+      return `
+        <div class="suggestion-item" onclick="openSuggestionModal('${suggestion._id}')">
+          <div class="suggestion-header">
+            <p class="suggestion-title">${escapeHtml(suggestion.title)}</p>
+            <span class="suggestion-status status-${getStatusClass(suggestion.status)}">${suggestion.status}</span>
+          </div>
+          <div class="suggestion-meta">
+            <span>Area: ${suggestion.area}</span>
+            <span>Date: ${formatDate(suggestion.submittedAt)}</span>
+          </div>
         </div>
-        <div class="suggestion-meta">
-          <span>Area: ${suggestion.area}</span>
-          <span>Date: ${formatDate(suggestion.submittedAt)}</span>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   } catch (error) {
     console.error('Error loading recent suggestions:', error);
   }

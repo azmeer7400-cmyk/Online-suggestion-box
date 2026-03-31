@@ -2,10 +2,15 @@ const initSqlJs = require('sql.js');
 const fs = require('fs');
 const path = require('path');
 
-// Ensure data directory exists
-const dataDir = path.join(__dirname, '../data');
+// Use temp directory that's more likely to be writable
+const dataDir = process.env.DATA_DIR || path.join(__dirname, '../data');
 if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+  try {
+    fs.mkdirSync(dataDir, { recursive: true });
+    console.log('Created data directory:', dataDir);
+  } catch (e) {
+    console.error('Failed to create data directory:', e.message);
+  }
 }
 
 const dbPath = path.join(dataDir, 'suggestions.db');
@@ -18,11 +23,20 @@ let db;
 const initializeDb = async () => {
   SQL = await initSqlJs();
   
+  console.log('Attempting to load database from:', dbPath);
+  
   // Load existing database or create new one
   if (fs.existsSync(dbPath)) {
-    const fileBuffer = fs.readFileSync(dbPath);
-    db = new SQL.Database(fileBuffer);
+    try {
+      const fileBuffer = fs.readFileSync(dbPath);
+      console.log('Loaded existing database file, size:', fileBuffer.length, 'bytes');
+      db = new SQL.Database(fileBuffer);
+    } catch (e) {
+      console.error('Failed to load existing database:', e.message);
+      db = new SQL.Database();
+    }
   } else {
+    console.log('No existing database found, creating new one');
     db = new SQL.Database();
   }
   
@@ -34,9 +48,15 @@ const initializeDb = async () => {
  */
 const saveDb = () => {
   if (db) {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(dbPath, buffer);
+    try {
+      const data = db.export();
+      const buffer = Buffer.from(data);
+      fs.writeFileSync(dbPath, buffer);
+      console.log('Database saved successfully, size:', buffer.length, 'bytes');
+    } catch (e) {
+      console.error('ERROR: Failed to save database:', e.message);
+      console.error('Database path:', dbPath);
+    }
   }
 };
 
@@ -50,7 +70,9 @@ class Database {
       run: (...params) => {
         try {
           const stmt = db.prepare(sql);
-          stmt.bind(params);
+          if (params.length > 0) {
+            stmt.bind(params);
+          }
           stmt.step();
           stmt.free();
           
@@ -66,17 +88,21 @@ class Database {
             lastID = null;
           }
           
+          console.log('Database insert executed, lastID:', lastID, 'saving...');
           saveDb();
+          console.log('Database saved after insert');
           return { lastID, changes: 1 };
         } catch (error) {
-          console.error('Database run error:', error, 'SQL:', sql);
+          console.error('Database run error:', error.message, 'SQL:', sql.substring(0, 100));
           throw error;
         }
       },
       get: (...params) => {
         try {
           const stmt = db.prepare(sql);
-          stmt.bind(params);
+          if (params.length > 0) {
+            stmt.bind(params);
+          }
           if (stmt.step()) {
             const columns = stmt.getColumnNames();
             const values = stmt.get();
@@ -90,14 +116,16 @@ class Database {
           stmt.free();
           return null;
         } catch (error) {
-          console.error('Database get error:', error, 'SQL:', sql);
+          console.error('Database get error:', error.message, 'SQL:', sql.substring(0, 100));
           throw error;
         }
       },
       all: (...params) => {
         try {
           const stmt = db.prepare(sql);
-          stmt.bind(params);
+          if (params.length > 0) {
+            stmt.bind(params);
+          }
           const results = [];
           const columns = stmt.getColumnNames();
           while (stmt.step()) {
@@ -109,9 +137,10 @@ class Database {
             results.push(row);
           }
           stmt.free();
+          console.log('Database query returned', results.length, 'rows');
           return results;
         } catch (error) {
-          console.error('Database all error:', error, 'SQL:', sql);
+          console.error('Database all error:', error.message, 'SQL:', sql.substring(0, 100));
           throw error;
         }
       }

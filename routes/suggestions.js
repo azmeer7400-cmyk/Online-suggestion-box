@@ -294,4 +294,33 @@ router.get('/stats', (req, res) => {
   }
 });
 
+/**
+ * GET /api/suggestions/track/:id
+ * Track suggestion status by ID (public endpoint, no auth required)
+ */
+router.get('/track/:id', (req, res) => {
+  try {
+    const stmt = db.prepare('SELECT * FROM suggestions WHERE id = ?');
+    const suggestion = stmt.get(req.params.id);
+
+    if (!suggestion) {
+      return res.status(404).json({ 
+        found: false,
+        message: 'Suggestion not found. Please check your tracking ID.' 
+      });
+    }
+
+    res.json({
+      found: true,
+      suggestion: formatSuggestion(suggestion)
+    });
+  } catch (error) {
+    console.error('Error tracking suggestion:', error);
+    res.status(500).json({ 
+      found: false,
+      message: 'Server error' 
+    });
+  }
+});
+
 module.exports = router;

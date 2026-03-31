@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Suggestion - Online Suggestion Box</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .track-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    #trackingResults {
+      display: none;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      margin: 10px 0;
+    }
+
+    .status-badge.pending {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-badge.under-review {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-badge.resolved {
+      background-color: #dcfce7;
+      color: #15803d;
+    }
+
+    .status-badge.rejected {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .tracking-info {
+      background: #f8fafc;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .info-value {
+      color: var(--text-light);
+      word-break: break-word;
+      text-align: right;
+    }
+
+    .admin-response-box {
+      background: #f1f5f9;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      border-left: 3px solid var(--success-color);
+    }
+
+    .admin-response-box h4 {
+      margin: 0 0 10px 0;
+      color: var(--success-color);
+    }
+
+    .admin-response-box p {
+      margin: 0;
+      color: var(--text-dark);
+    }
+
+    .error-message {
+      color: var(--danger-color);
+      padding: 15px;
+      background-color: #fee2e2;
+      border-radius: 6px;
+      margin: 20px 0;
+      display: none;
+    }
+
+    .back-to-home {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .back-to-home a {
+      color: var(--primary-color);
+      text-decoration: none;
+      border: 1px solid var(--primary-color);
+      padding: 10px 20px;
+      border-radius: 4px;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .back-to-home a:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-light);
+    }
+  </style>
+</head>
+<body class="track-page">
+  <div class="header">
+    <div class="container">
+      <h1>📋 Online Suggestion Box</h1>
+      <p>Track your suggestion status</p>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="track-container">
+      <div id="trackingForm">
+        <h2>Track Your Suggestion</h2>
+        <p style="color: var(--text-light); margin-bottom: 20px;">
+          Enter your suggestion ID to check the status of your submission.
+        </p>
+
+        <form id="trackForm" class="login-form">
+          <div class="form-group">
+            <label for="trackingId">Suggestion ID</label>
+            <input 
+              type="text" 
+              id="trackingId" 
+              name="trackingId" 
+              placeholder="e.g., 1, 2, 3..."
+              required
+              autofocus
+            >
+            <small style="color: var(--text-light);">This ID was shown on your confirmation page</small>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <span class="btn-text">Track Suggestion</span>
+            <span class="btn-loader" style="display: none;">Searching...</span>
+          </button>
+
+          <div class="error-message" id="errorMessage"></div>
+        </form>
+      </div>
+
+      <div id="trackingResults">
+        <div id="resultContent"></div>
+
+        <div class="back-to-home">
+          <a href="/" onclick="resetForm()">← Back to Submit New Suggestion</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('trackForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const trackingId = document.getElementById('trackingId').value.trim();
+      const errorMsg = document.getElementById('errorMessage');
+      const btn = e.target.querySelector('.btn-text');
+      const loader = e.target.querySelector('.btn-loader');
+
+      if (!trackingId) {
+        errorMsg.textContent = 'Please enter your suggestion ID';
+        errorMsg.style.display = 'block';
+        return;
+      }
+
+      // Show loading state
+      btn.style.display = 'none';
+      loader.style.display = 'inline';
+      errorMsg.style.display = 'none';
+
+      try {
+        const response = await fetch(`/api/suggestions/track/${encodeURIComponent(trackingId)}`);
+        const data = await response.json();
+
+        if (data.found && data.suggestion) {
+          displaySuggestionStatus(data.suggestion);
+        } else {
+          errorMsg.textContent = data.message || 'Suggestion not found. Please check your ID and try again.';
+          errorMsg.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        errorMsg.textContent = 'Network error. Please try again.';
+        errorMsg.style.display = 'block';
+      } finally {
+        btn.style.display = 'inline';
+        loader.style.display = 'none';
+      }
+    });
+
+    function displaySuggestionStatus(suggestion) {
+      const statusMap = {
+        'Pending': 'pending',
+        'Under Review': 'under-review',
+        'Resolved': 'resolved',
+        'Rejected': 'rejected'
+      };
+
+      const statusClass = statusMap[suggestion.status] || 'pending';
+      const formattedDate = new Date(suggestion.submittedAt).toLocaleString();
+      const responseDate = suggestion.responseDate ? new Date(suggestion.responseDate).toLocaleString() : 'Not yet responded';
+
+      let adminResponseHTML = '';
+      if (suggestion.adminResponse) {
+        adminResponseHTML = `
+          <div class="admin-response-box">
+            <h4>✅ Response from Admin</h4>
+            <p>${escapeHtml(suggestion.adminResponse)}</p>
+            <small>Responded: ${responseDate}</small>
+          </div>
+        `;
+      } else if (suggestion.status !== 'Pending') {
+        adminResponseHTML = `
+          <div class="admin-response-box">
+            <h4>📝 Under Review</h4>
+            <p>Your suggestion is being reviewed. An admin response will appear here soon.</p>
+          </div>
+        `;
+      }
+
+      const html = `
+        <h2>Your Suggestion Status</h2>
+        
+        <div class="status-badge ${statusClass}">
+          ${suggestion.status}
+        </div>
+
+        <div class="tracking-info">
+          <div class="info-row">
+            <span class="info-label">Tracking ID:</span>
+            <span class="info-value">#${suggestion.id}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Title:</span>
+            <span class="info-value">${escapeHtml(suggestion.title)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Message:</span>
+            <span class="info-value" style="text-align: left;">${escapeHtml(suggestion.message)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Area:</span>
+            <span class="info-value">${escapeHtml(suggestion.area)}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Location:</span>
+            <span class="info-value">Floor ${suggestion.floor}, Wing ${suggestion.wing}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Submitted:</span>
+            <span class="info-value">${formattedDate}</span>
+          </div>
+        </div>
+
+        ${adminResponseHTML}
+      `;
+
+      document.getElementById('resultContent').innerHTML = html;
+      document.getElementById('trackingForm').style.display = 'none';
+      document.getElementById('trackingResults').style.display = 'block';
+    }
+
+    function resetForm() {
+      document.getElementById('trackForm').reset();
+      document.getElementById('trackingForm').style.display = 'block';
+      document.getElementById('trackingResults').style.display = 'none';
+      document.getElementById('trackingId').focus();
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Focus on input when page loads
+    window.addEventListener('load', () => {
+      document.getElementById('trackingId').focus();
+    });
+  </script>
+</body>
+</html>

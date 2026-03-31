@@ -14,16 +14,16 @@ async function runInitialization() {
     }
 
     // Hash password for admin user
-    const hashedPassword = bcrypt.hashSync('admin123', 10);
+    const hashedPassword = bcrypt.hashSync('bhaya#69', 10);
 
     // Check if admin user already exists
     const existingStmt = db.prepare('SELECT * FROM admins WHERE username = ?');
-    const existingAdmin = existingStmt.get('admin');
+    const existingAdmin = existingStmt.get('bhaya');
     
     if (existingAdmin) {
       console.log('Admin user already exists');
-      console.log('Username: admin');
-      console.log('Password: admin123');
+      console.log('Username: bhaya');
+      console.log('Password: bhaya#69');
     } else {
       // Insert default admin user
       const stmt = db.prepare(`
@@ -31,11 +31,11 @@ async function runInitialization() {
         VALUES (?, ?, ?)
       `);
 
-      stmt.run('admin', hashedPassword, 'admin@college.edu');
+      stmt.run('bhaya', hashedPassword, 'azmeer7400@gmail.com');
       console.log('Admin user created successfully');
-      console.log('Username: admin');
-      console.log('Password: admin123');
-      console.log('Email: admin@college.edu');
+      console.log('Username: bhaya');
+      console.log('Password: bhaya#69');
+      console.log('Email: azmeer7400@gmail.com');
     }
 
     // Display database statistics

@@ -280,7 +280,7 @@ async function openSuggestionModal(suggestionId) {
   try {
     const response = await fetch('/api/suggestions/all');
     const suggestions = await response.json();
-    const suggestion = suggestions.find(s => s._id === suggestionId);
+    const suggestion = suggestions.find(s => String(s._id) === String(suggestionId));
 
     if (!suggestion) {
       alert('Suggestion not found');
